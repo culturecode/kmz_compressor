@@ -9,7 +9,7 @@ Gem::Specification.new do |s|
   s.version     = KMZCompressor::VERSION
   s.authors     = ["Ryan Wallace", "Nicholas Jakobsen"]
   s.email       = ["contact@culturecode.ca"]
-  s.homepage    = "http://www.culturecode.ca/"
+  s.homepage    = "http://github.com/culturecode/kmz_compressor"
   s.summary     = "Rack Middleware which retrieves KML from Rails and produces KMZ for the client."
   s.description = "Rack Middleware which retrieves KML from Rails and produces KMZ for the client."
 
