@@ -1,0 +1,1 @@
+require 'kmz_compressor/railtie' if defined?(Rails)

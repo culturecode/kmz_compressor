@@ -1,0 +1,5 @@
+= KmzCompressor
+
+Rack Middleware which retrieves KML from Rails and produces KMZ for the client.
+
+Just add gem 'kmz_compressor' to your Gemfile and then request kmz for any action that accepts requests for kml.
