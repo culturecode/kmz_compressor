@@ -1,3 +1,4 @@
+require 'fileutils'
 require 'zippy'
 require 'kmz_compressor/middleware'
 

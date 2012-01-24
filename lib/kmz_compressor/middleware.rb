@@ -5,10 +5,11 @@ module KMZCompressor
     end
   
     def call(env)
-      req = Rack::Request.new(env)
-
-      if req.path_info.end_with? '.kmz'
-        req.path_info = req.path_info.gsub(/kmz\Z/, 'kml')
+      @request = Rack::Request.new(env)
+      @cache_path = "public/#{@request.path_info}"
+      
+      if @request.path_info.end_with? '.kmz'
+        @request.path_info = @request.path_info.gsub(/kmz\Z/, 'kml')
 
         @status, @headers, @response = @app.call(env)
 
@@ -19,7 +20,12 @@ module KMZCompressor
     end
 
     def each(&block)
-      block.call(Zippy.new {|zip| zip['doc.kml'] = @response.body }.data)
+      FileUtils.mkdir_p(File.dirname(@cache_path))
+      kmz = Zippy.create(@cache_path) do |zip| 
+        zip['doc.kml'] = @response.body
+      end
+      
+      block.call(kmz.data)
     end
   end
 end
