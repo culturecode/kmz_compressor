@@ -16,14 +16,18 @@ module KMZCompressor
         request.path_info = request.path_info.gsub(/kmz\Z/, 'kml')
         status, headers, response = @app.call(env)
         
-        # Zip the KML response and save it on the HD
-        FileUtils.mkdir_p(File.dirname(cache_path))
-        kmz = Zippy.create(cache_path) do |zip| 
-          zip['doc.kml'] = response.body
-        end
+        if status.to_i == 200
+          # Zip the KML response and save it on the HD
+          FileUtils.mkdir_p(File.dirname(cache_path))
+          kmz = Zippy.create(cache_path) do |zip| 
+            zip['doc.kml'] = response.body
+          end
 
-        # Return the response to the next middleware in the chain
-        [status, headers, [kmz.data]]
+          # Return the response to the next middleware in the chain
+          [status, headers, [kmz.data]]
+        else
+          [status, headers, response]
+        end
       else
         @app.call(env)
       end
