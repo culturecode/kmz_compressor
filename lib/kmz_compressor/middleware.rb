@@ -22,6 +22,9 @@ module KMZCompressor
           kmz = Zippy.create(cache_path) do |zip| 
             zip['doc.kml'] = response.body
           end
+          
+          # Set the Content-Type to KMZ
+          headers['Content-Type'] = 'application/vnd.google-earth.kmz'
 
           # Return the response to the next middleware in the chain
           [status, headers, [kmz.data]]
