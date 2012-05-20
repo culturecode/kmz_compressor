@@ -1,5 +1,5 @@
 MapLayerManager = {
-    host: location.host,
+    host:  location.protocol + "//" + location.host,
     layers: [],
     requestTimestamps: { },
 
