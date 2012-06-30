@@ -77,7 +77,7 @@ MapLayerManager = {
         var layer;
         while (layer = this.getLayer(layerName)){
             layer.kml.setMap(null)
-            this.layers.splice(this.layers.indexOf(layer), 1);                
+            this.layers.splice($.inArray(layer, this.layers), 1);                
         }
     },
     everyLayer: function(fn){
@@ -90,7 +90,7 @@ MapLayerManager = {
         var foundLayers = [];
         for (var i = 0; i < this.layers.length; i++){
             var layer = this.layers[i]
-            if (foundLayers.indexOf(layer.name) > -1){
+            if ($.inArray(layer.name, foundLayers) > -1){
                 layer.kml.setMap(null);
                 this.layers.splice(i, 1);
             } else if (layer.kml.status == 'OK') {
