@@ -80,6 +80,11 @@ MapLayerManager = {
             this.layers.splice($.inArray(layer, this.layers), 1);                
         }
     },
+    removeLayers: function(){
+        for (var i = 0; i < this.layers.length; i++){
+            this.removeLayer(this.layers[i].name);
+        }
+    },
     everyLayer: function(fn){
         for (var i = 0; i < this.layers.length; i++){
             fn(this.layers[i]);
