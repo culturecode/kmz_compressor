@@ -34,6 +34,10 @@ MapLayerManager = {
     },
     centerWhenLoaded: function(map, layerNames){
         var centeringInterval;
+        if (!layerNames){
+            layerNames = $(this.layers).map(function(){return this.name})
+        }
+        
         centeringInterval = setInterval(function(){
             if (MapLayerManager.layersLoaded(layerNames)){
                 clearInterval(centeringInterval);
