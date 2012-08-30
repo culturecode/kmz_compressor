@@ -63,7 +63,7 @@ MapLayerManager = {
     centerOnLayers: function(map, layerNames){
         var bounds;
         if (!layerNames){
-            layerNames = $(layerNames).map(function(){return this.name})
+            layerNames = $(this.layers).map(function(){return this.name})
         }
         for (var i = 0; i < layerNames.length; i++){
             var kml = this.getLayer(layerNames[i]).kml;
