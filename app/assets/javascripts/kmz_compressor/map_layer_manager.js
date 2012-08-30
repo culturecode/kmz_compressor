@@ -34,10 +34,10 @@ MapLayerManager = {
     },
     centerWhenLoaded: function(map, layerNames){
         var centeringInterval;
-        if (!layerNames){
+        if (!layerNames || layerNames.length == 0){
             layerNames = $(this.layers).map(function(){return this.name})
         }
-        
+
         centeringInterval = setInterval(function(){
             if (MapLayerManager.layersLoaded(layerNames)){
                 clearInterval(centeringInterval);
@@ -66,9 +66,7 @@ MapLayerManager = {
     },
     centerOnLayers: function(map, layerNames){
         var bounds;
-        if (!layerNames){
-            layerNames = $(this.layers).map(function(){return this.name})
-        }
+
         for (var i = 0; i < layerNames.length; i++){
             var kml = this.getLayer(layerNames[i]).kml;
             if (kml.getDefaultViewport().toString() != "((-90, 180), (90, -180))"){
