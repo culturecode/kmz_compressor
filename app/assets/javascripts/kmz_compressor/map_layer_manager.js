@@ -69,7 +69,7 @@ MapLayerManager = {
 
         for (var i = 0; i < layerNames.length; i++){
             var kml = this.getLayer(layerNames[i]).kml;
-            if (kml.getDefaultViewport().toString() != "((-90, 180), (90, -180))"){
+            if (kml.getDefaultViewport().toSpan().toString() != "(180, 360)"){
                 bounds = bounds || kml.getDefaultViewport();
                 bounds.union(kml.getDefaultViewport());                
             }
