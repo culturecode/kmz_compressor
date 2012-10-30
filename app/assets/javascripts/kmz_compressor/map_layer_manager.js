@@ -1,7 +1,10 @@
 MapLayerManager = {
     host:  location.protocol + "//" + location.host,
     layers: [],
+    loadingCount: 0, // How many layers are being loaded
     requestTimestamps: { },
+    layerLoadingEventName: 'map:layerLoading',
+    layerLoadedEventName: 'map:layerLoaded',
 
     // Prime the KMZ cache on the server before unleashing google's many tilemills
     cacheAndLoadKMLLayer: function(map, kmlPath, layerName, options) {
@@ -22,31 +25,41 @@ MapLayerManager = {
         options.map = map;
         
         var kmlLayer = new google.maps.KmlLayer(this.host + kmlPath, options);
-        MapLayerManager.addLayer(layerName, kmlLayer)
-        
-        google.maps.event.addListener(kmlLayer, 'status_changed', function(){
+        var layer = MapLayerManager.addLayer(layerName, kmlLayer)
+        this.loadingCount++
+        $(window.document).trigger({type: this.layerLoadingEventName, layer:layer})
+
+        // Try and catch the defaultviewport_changed event so we can remove the old layer (sometimes this works, sometimes not)
+        google.maps.event.addListener(kmlLayer, 'defaultviewport_changed', function(){
             MapLayerManager.sweep();
-        });
+        });        
     },    
     // Generates the url of the cached KMZ for the given kmlPath
     cachedKMZPath: function(kmlPath){
         return '/kmz/' + hex_sha256(kmlPath) + '.kmz'
     },
-    centerWhenLoaded: function(map, layerNames){
-        var centeringInterval;
-        if (!layerNames || layerNames.length == 0){
-            layerNames = $(this.layers).map(function(){return this.name})
-        }
+    centerWhenLoaded: function(map, layerNames){    
+        var handler = function(){
+            // If we have no layer names
+            if (!layerNames || layerNames.length == 0){
+                layerNames = MapLayerManager.layerNames()
+            }
 
-        centeringInterval = setInterval(function(){
             if (MapLayerManager.layersLoaded(layerNames)){
-                clearInterval(centeringInterval);
+                $(window.document).unbind(MapLayerManager.layerLoadedEventName, handler)
                 MapLayerManager.centerOnLayers(map, layerNames);
             }
-        }, 100)
+        }
+
+        $(window.document).bind(this.layerLoadedEventName, handler)
+    },
+    // Returns the layer names
+    layerNames: function(){
+        return $(this.layers).map(function(){return this.name})
     },
     addLayer: function(layerName, kml){
-      this.layers.unshift({name:layerName, kml:kml})  
+      this.layers.unshift({name:layerName, kml:kml})
+      return this.layers[0]
     },
     getLayer: function(layerName){
         for (var i = 0; i < this.layers.length; i++){
@@ -58,7 +71,7 @@ MapLayerManager = {
     layersLoaded: function(layerNames){
         for (var i = 0; i < layerNames.length; i++){
             var layer = this.getLayer(layerNames[i]);
-            if (!(layer && layer.kml && layer.kml.getStatus() == 'OK')){
+            if (!layer || !layer.loaded){
                 return false;
             }
         }
@@ -95,17 +108,29 @@ MapLayerManager = {
             fn(this.layers[i]);
         }
     },
-    // Remove all stale layers
+    // Keep everything in sync
     sweep: function(){
         var foundLayers = [];
         for (var i = 0; i < this.layers.length; i++){
             var layer = this.layers[i]
+
+            // Update the layer's loaded status
+            if (!layer.loaded && layer.kml && layer.kml.getStatus() == 'OK'){
+                layer.loaded = true
+                this.loadingCount--
+                $(window.document).trigger({type: this.layerLoadedEventName, layer:layer})
+            }
+
+            // Remove old layers
             if ($.inArray(layer.name, foundLayers) > -1){
                 layer.kml.setMap(null);
                 this.layers.splice(i, 1);
-            } else if (layer.kml.status == 'OK') {
+            } else if (layer.loaded) {
                 foundLayers.push(layer.name)
             }
         }
     }
 };
+
+// Because google events sometimes get missed, we ensure we're up to date every now and again
+setInterval(function(){MapLayerManager.sweep()}, 1000)
