@@ -15,7 +15,7 @@ module KMZCompressor
         
         if file_exists
           status = 200
-          headers = {'Last-Modified' => File.mtime(cache_path)}
+          headers = {'Last-Modified' => File.mtime(cache_path).httpdate}
           response = File.open(cache_path)
         else
           # Ask Rails for KML instead of KMZ
