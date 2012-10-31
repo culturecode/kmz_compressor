@@ -114,22 +114,15 @@ MapLayerManager = {
         for (var i = 0; i < this.layers.length; i++){
             var layer = this.layers[i]
             var kmlStatus = layer.kml ? layer.kml.getStatus() : null;
-
-            // If the layer didn't just finish loading, skip to the next one
-            if (layer.loaded || layer.error || !kmlStatus){
-                continue
+            
+            // If the layer just finished loading
+            if (!layer.loaded && kmlStatus) {
+                this.loadingCount--
+                layer.loaded = true                
+                layer.error = kmlStatus == 'OK' ? null : kmlStatus // if there were any errors, record them
+                $(window.document).trigger({type: this.layerLoadedEventName, layer:layer})
             }
-
-            // Record any errors
-            if (kmlStatus != 'OK'){
-                layer.error = kmlStatus
-            }
-
-            // Let everyone know the layer has finished loading
-            layer.loaded = true
-            this.loadingCount--
-            $(window.document).trigger({type: this.layerLoadedEventName, layer:layer})
-
+    
             // Remove old layers
             if ($.inArray(layer.name, foundLayers) > -1){
                 layer.kml.setMap(null);
