@@ -113,13 +113,22 @@ MapLayerManager = {
         var foundLayers = [];
         for (var i = 0; i < this.layers.length; i++){
             var layer = this.layers[i]
+            var kmlStatus = layer.kml ? layer.kml.getStatus() : null;
 
-            // Update the layer's loaded status
-            if (!layer.loaded && layer.kml && layer.kml.getStatus() == 'OK'){
-                layer.loaded = true
-                this.loadingCount--
-                $(window.document).trigger({type: this.layerLoadedEventName, layer:layer})
+            // If the layer didn't just finish loading, skip to the next one
+            if (layer.loaded || layer.error || !kmlStatus){
+                continue
             }
+
+            // Record any errors
+            if (kmlStatus != 'OK'){
+                layer.error = kmlStatus
+            }
+
+            // Let everyone know the layer has finished loading
+            layer.loaded = true
+            this.loadingCount--
+            $(window.document).trigger({type: this.layerLoadedEventName, layer:layer})
 
             // Remove old layers
             if ($.inArray(layer.name, foundLayers) > -1){
