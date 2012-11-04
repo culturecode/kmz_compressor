@@ -81,10 +81,14 @@ MapLayerManager = {
         var bounds;
 
         for (var i = 0; i < layerNames.length; i++){
-            var kml = this.getLayer(layerNames[i]).kml;
-            if (kml.getDefaultViewport().toSpan().toString() != "(180, 360)"){
-                bounds = bounds || kml.getDefaultViewport();
-                bounds.union(kml.getDefaultViewport());                
+            var layer = this.getLayer(layerNames[i])
+            if (layer.error){
+                continue
+            }
+
+            if (layer.kml.getDefaultViewport().toSpan().toString() != "(180, 360)"){
+                bounds = bounds || layer.kml.getDefaultViewport();
+                bounds.union(layer.kml.getDefaultViewport());                
             }
         }
         if (bounds){
