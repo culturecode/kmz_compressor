@@ -11,7 +11,7 @@ module KMZCompressor
       if request.path_info.end_with? '.kmz'
         # HACK: Firefox 'helps' us out by encoding apostrophes as %27 in AJAX requests, However its encodeURI method
         # does not. This difference causes a mismatch between the browser's cached KMZ path, and the server.
-        # This hack undoes the damage
+        # This hack undoes the damage. See https://bugzilla.mozilla.org/show_bug.cgi?id=407172
         recoded_uri = URI.encode(URI.decode(request.fullpath))
 
         # Use a hash of the request path (before we gsub it) as the filename we will save on the HD

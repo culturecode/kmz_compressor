@@ -32,7 +32,17 @@ MapLayerManager = {
         // Try and catch the defaultviewport_changed event so we can remove the old layer (sometimes this works, sometimes not)
         google.maps.event.addListener(kmlLayer, 'defaultviewport_changed', function(){
             MapLayerManager.sweep();
-        });        
+        });
+
+        // Add a listener to catch clicks and close all info windows on other layers
+        google.maps.event.addListener(kmlLayer, 'click', function(){
+            MapLayerManager.everyLayer(function(layer){
+                if (layer.kml != kmlLayer){ // Don't close this layer's info window
+                    layer.kml.setOptions({suppressInfoWindows:true})
+                    layer.kml.setOptions({suppressInfoWindows:false})
+                }
+            })
+        });
     },    
     // Generates the url of the cached KMZ for the given kmlPath
     cachedKMZPath: function(kmlPath){
