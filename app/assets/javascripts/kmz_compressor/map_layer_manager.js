@@ -78,6 +78,28 @@ MapLayerManager = {
             }
         }
     },
+    // Shows the layer and returns true, returns false if the layer couldn't be hidden
+    hideLayer: function(layerName){
+        var layer = this.getLayer(layerName);
+        if (layer && layer.kml){
+            layer.oldMap = layer.kml.getMap();
+            layer.kml.setMap(null)
+            return true
+        } else {
+            return false
+        }
+    },
+    // Shows the layer and returns true, returns false if the layer couldn't be shown
+    showLayer: function(layerName){
+        var layer = this.getLayer(layerName);
+        if (layer && layer.kml && layer.oldMap){
+            layer.kml.setMap(layer.oldMap);
+            layer.oldMap = null
+            return true
+        } else {
+            return false
+        }
+    },
     layersLoaded: function(layerNames){
         for (var i = 0; i < layerNames.length; i++){
             var layer = this.getLayer(layerNames[i]);
