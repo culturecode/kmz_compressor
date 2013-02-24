@@ -72,11 +72,14 @@ MapLayerManager = {
       return this.layers[0]
     },
     getLayer: function(layerName){
-        for (var i = 0; i < this.layers.length; i++){
-            if (this.layers[i].name == layerName){
-                return this.layers[i];
+        var desiredLayer
+        $.each(this.layers, function(index, layer){
+            if (layer.name == layerName){
+                desiredLayer = layer
+                return false;
             }
-        }
+        })
+        return desiredLayer
     },
     // Shows the layer and returns true, returns false if the layer couldn't be hidden
     hideLayer: function(layerName){
@@ -128,45 +131,47 @@ MapLayerManager = {
         }
     },
     removeLayer: function(layerName){
-        var layer;
-        while (layer = this.getLayer(layerName)){
+        $.each(this.layers, function(index, layer){
             layer.kml.setMap(null)
-            this.layers.splice($.inArray(layer, this.layers), 1);                
-        }
+            MapLayerManager.layers.splice(index, 1);                
+        });
     },
     removeLayers: function(){
-        for (var i = 0; i < this.layers.length; i++){
-            this.removeLayer(this.layers[i].name);
-        }
+        $.each(this.layers, function(index, layer){
+            MapLayerManager.removeLayer(layer.name);
+        })
     },
     everyLayer: function(fn){
-        for (var i = 0; i < this.layers.length; i++){
-            fn(this.layers[i]);
-        }
+        $.each(this.layers, function(index, layer){
+            fn(layer);
+        })
     },
-    // Keep everything in sync
+
+    // Sweep through layers from the newest to oldest, if a layer name is seen more than once, delete all but the newest
+    // Don't delete an instance if we haven't yet seen a version of it with status 'OK'
     sweep: function(){
-        var foundLayers = [];
-        for (var i = 0; i < this.layers.length; i++){
-            var layer = this.layers[i]
+        var foundLayers = [];        
+        // NOTE: We use an iterator instead of a for loop because modifications to this.layers that occur during iteration can mess us up
+        //       e.g. if we're responding to an event during the loop and the event adds a layer, we may end up re-iterating on a layer we've already processed
+        $.each(this.layers, function(index, layer){
             var kmlStatus = layer.kml ? layer.kml.getStatus() : null;
             
             // If the layer just finished loading
             if (!layer.loaded && kmlStatus) {
-                this.loadingCount--
+                MapLayerManager.loadingCount--
                 layer.loaded = true                
                 layer.error = kmlStatus == 'OK' ? null : kmlStatus // if there were any errors, record them
-                $(window.document).trigger({type: this.layerLoadedEventName, layer:layer})
+                $(window.document).trigger({type: MapLayerManager.layerLoadedEventName, layer:layer})
             }
     
             // Remove old layers
             if ($.inArray(layer.name, foundLayers) > -1){
                 layer.kml.setMap(null);
-                this.layers.splice(i, 1);
+                MapLayerManager.layers.splice(index, 1);
             } else if (layer.loaded) {
                 foundLayers.push(layer.name)
             }
-        }
+        })
     }
 };
 
