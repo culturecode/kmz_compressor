@@ -65,7 +65,7 @@ MapLayerManager = {
     },
     // Returns the layer names
     layerNames: function(){
-        return $(this.layers).map(function(){return this.name})
+        return $(this.layers.slice(0)).map(function(){return this.name})
     },
     addLayer: function(layerName, kml){
       this.layers.unshift({name:layerName, kml:kml})
@@ -73,7 +73,7 @@ MapLayerManager = {
     },
     getLayer: function(layerName){
         var desiredLayer
-        $.each(this.layers, function(index, layer){
+        this.everyLayer(function(layer, index){
             if (layer.name == layerName){
                 desiredLayer = layer
                 return false;
@@ -87,7 +87,10 @@ MapLayerManager = {
         if (layer && layer.kml){
             layer.oldMap = layer.kml.getMap();
             layer.kml.setMap(null)
+            layer.hidden = true
             return true
+        } else if (layer) {
+            layer.hidden = true
         } else {
             return false
         }
@@ -98,6 +101,7 @@ MapLayerManager = {
         if (layer && layer.kml && layer.oldMap){
             layer.kml.setMap(layer.oldMap);
             layer.oldMap = null
+            layer.hidden = false
             return true
         } else {
             return false
@@ -131,29 +135,28 @@ MapLayerManager = {
         }
     },
     removeLayer: function(layerName){
-        $.each(this.layers, function(index, layer){
+        this.everyLayer(function(layer, index){
             layer.kml.setMap(null)
             MapLayerManager.layers.splice(index, 1);                
         });
     },
     removeLayers: function(){
-        $.each(this.layers, function(index, layer){
+        this.everyLayer(function(layer){
             MapLayerManager.removeLayer(layer.name);
         })
     },
     everyLayer: function(fn){
-        $.each(this.layers, function(index, layer){
-            fn(layer);
+        // NOTE: We use an iterator instead of a for loop because modifications to this.layers that occur during iteration can mess us up
+        //       e.g. if we're responding to an event during the loop and the event adds a layer, we may end up re-iterating on a layer we've already processed
+        $.each(this.layers.slice(0), function(index, layer){
+            fn(layer, index);
         })
     },
 
-    // Sweep through layers from the newest to oldest, if a layer name is seen more than once, delete all but the newest
-    // Don't delete an instance if we haven't yet seen a version of it with status 'OK'
+    // Keep layers synced with their state
     sweep: function(){
         var foundLayers = [];        
-        // NOTE: We use an iterator instead of a for loop because modifications to this.layers that occur during iteration can mess us up
-        //       e.g. if we're responding to an event during the loop and the event adds a layer, we may end up re-iterating on a layer we've already processed
-        $.each(this.layers, function(index, layer){
+        this.everyLayer(function(layer, index){
             var kmlStatus = layer.kml ? layer.kml.getStatus() : null;
             
             // If the layer just finished loading
@@ -163,8 +166,15 @@ MapLayerManager = {
                 layer.error = kmlStatus == 'OK' ? null : kmlStatus // if there were any errors, record them
                 $(window.document).trigger({type: MapLayerManager.layerLoadedEventName, layer:layer})
             }
+
+            // A layer should be hidden, but the kml is showing, hide it (i.e. correct layers that were hidden before the kml was loaded)
+            if (layer.hidden && layer.loaded && layer.kml.getMap()){
+                MapLayerManager.hideLayer(layer.name)
+            }
     
             // Remove old layers
+            // Sweep through layers from the newest to oldest, if a layer name is seen more than once, delete all but the newest
+            // Don't delete an instance if we haven't yet seen a version of it with status 'OK'
             if ($.inArray(layer.name, foundLayers) > -1){
                 layer.kml.setMap(null);
                 MapLayerManager.layers.splice(index, 1);
