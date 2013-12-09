@@ -9,8 +9,8 @@ MapLayerManager = {
     // Prime the KMZ cache on the server before unleashing google's many tilemills
     cacheAndLoadKMLLayer: function(map, kmlPath, layerName, options) {
         var requestTimestamp = new Date;
-        kmlPath = encodeURI(kmlPath);
-        
+        kmlPath = this.sanitizeURI(kmlPath);
+
         $.ajax(this.host + kmlPath, {type:'head', complete:function(){
             if (!MapLayerManager.requestTimestamps[layerName] || MapLayerManager.requestTimestamps[layerName] < requestTimestamp){
                 MapLayerManager.requestTimestamps[layerName] = requestTimestamp;
@@ -20,7 +20,7 @@ MapLayerManager = {
     },
     loadKMLLayer: function(map, kmlPath, layerName, options) {
         // Replace spaces with pluses so we don't have problems with some things turning them into %20s and some not
-        kmlPath = encodeURI(kmlPath);
+        kmlPath = this.sanitizeURI(kmlPath);
         options = options || {}
         options.map = map;
         
@@ -182,6 +182,11 @@ MapLayerManager = {
                 foundLayers.push(layer.name)
             }
         })
+    },
+    sanitizeURI: function(uri){
+      // Replace spaces with pluses so we don't have problems with some things turning them into %20s and some not
+      // Matches the middleware process
+      return encodeURI(decodeURI(uri))
     }
 };
 

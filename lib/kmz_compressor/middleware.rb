@@ -14,6 +14,9 @@ module KMZCompressor
         # This hack undoes the damage. See https://bugzilla.mozilla.org/show_bug.cgi?id=407172
         recoded_uri = URI.encode(URI.decode(request.fullpath))
 
+        # HACK: Also encode brackets of nested params because the javascript version does, but the ruby version does not
+        recoded_uri = recoded_uri.gsub('[', '%5B').gsub(']','%5D')
+
         # Use a hash of the request path (before we gsub it) as the filename we will save on the HD
         cache_path = "public/kmz/#{Digest::SHA2.hexdigest(recoded_uri)}.kmz"
         file_exists = File.exists?(cache_path)
