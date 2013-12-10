@@ -15,7 +15,7 @@ MapLayerManager = {
             if (!MapLayerManager.requestTimestamps[layerName] || MapLayerManager.requestTimestamps[layerName] < requestTimestamp){
                 MapLayerManager.requestTimestamps[layerName] = requestTimestamp;
                 MapLayerManager.loadKMLLayer(map, MapLayerManager.cachedKMZPath(kmlPath), layerName, options)
-            }            
+            }
         }});
     },
     loadKMLLayer: function(map, kmlPath, layerName, options) {
@@ -23,7 +23,7 @@ MapLayerManager = {
         kmlPath = this.sanitizeURI(kmlPath);
         options = options || {}
         options.map = map;
-        
+
         var kmlLayer = new google.maps.KmlLayer(this.host + kmlPath, options);
         var layer = MapLayerManager.addLayer(layerName, kmlLayer)
         this.loadingCount++
@@ -43,12 +43,12 @@ MapLayerManager = {
                 }
             })
         });
-    },    
+    },
     // Generates the url of the cached KMZ for the given kmlPath
     cachedKMZPath: function(kmlPath){
         return '/kmz/' + hex_sha256(kmlPath) + '.kmz'
     },
-    centerWhenLoaded: function(map, layerNames){    
+    centerWhenLoaded: function(map, layerNames){
         var handler = function(){
             // If we have no layer names
             if (!layerNames || layerNames.length == 0){
@@ -127,11 +127,11 @@ MapLayerManager = {
 
             if (layer.kml.getDefaultViewport().toSpan().toString() != "(180, 360)"){
                 bounds = bounds || layer.kml.getDefaultViewport();
-                bounds.union(layer.kml.getDefaultViewport());                
+                bounds.union(layer.kml.getDefaultViewport());
             }
         }
         if (bounds){
-            map.fitBounds(bounds);            
+            map.fitBounds(bounds);
         }
     },
     removeLayer: function(layerName){
@@ -158,14 +158,14 @@ MapLayerManager = {
 
     // Keep layers synced with their state
     sweep: function(){
-        var foundLayers = [];        
+        var foundLayers = [];
         this.everyLayer(function(layer, index){
             var kmlStatus = layer.kml ? layer.kml.getStatus() : null;
-            
+
             // If the layer just finished loading
             if (!layer.loaded && kmlStatus) {
                 MapLayerManager.loadingCount--
-                layer.loaded = true                
+                layer.loaded = true
                 layer.error = kmlStatus == 'OK' ? null : kmlStatus // if there were any errors, record them
                 $(window.document).trigger({type: MapLayerManager.layerLoadedEventName, layer:layer})
             }
@@ -174,7 +174,7 @@ MapLayerManager = {
             if (layer.hidden && layer.loaded && layer.kml.getMap()){
                 MapLayerManager.hideLayer(layer.name)
             }
-    
+
             // Remove old layers
             // Sweep through layers from the newest to oldest, if a layer name is seen more than once, delete all but the newest
             // Don't delete an instance if we haven't yet seen a version of it with status 'OK'
