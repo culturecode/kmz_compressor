@@ -136,8 +136,11 @@ MapLayerManager = {
     },
     removeLayer: function(layerName){
         this.everyLayer(function(layer, index){
+          if (layer.name == layerName){
             layer.kml.setMap(null)
-            MapLayerManager.layers.splice(index, 1);                
+            MapLayerManager.layers.splice(index, 1);
+            return;
+          }
         });
     },
     removeLayers: function(){
