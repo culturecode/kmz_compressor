@@ -13,7 +13,7 @@ Gem::Specification.new do |s|
   s.summary     = "Rack Middleware which retrieves KML from Rails and produces KMZ for the client."
   s.description = "Rack Middleware which retrieves KML from Rails and produces KMZ for the client."
 
-  s.files = Dir["{lib}/**/*"] + ["MIT-LICENSE", "README.rdoc"]
+  s.files = Dir["{app}/**/*"] + Dir["{lib}/**/*"] + ["MIT-LICENSE", "README.rdoc"]
 
   s.add_dependency "rails", "~> 3.1"
   s.add_dependency "rubyzip", "0.9.9"
