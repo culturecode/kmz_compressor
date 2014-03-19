@@ -186,10 +186,30 @@ MapLayerManager = {
             }
         })
     },
+    // Replace spaces with pluses so we don't have problems with some things turning them into %20s and some not
+    // Matches the middleware process
     sanitizeURI: function(uri){
-      // Replace spaces with pluses so we don't have problems with some things turning them into %20s and some not
-      // Matches the middleware process
-      return encodeURI(decodeURI(uri))
+      var url = $('<a href="' + uri + '"/>')[0]
+      var pathname = decodeURI(url.pathname)
+      var search = decodeURIComponent(url.search.replace(/\+/g, '%20')).trim().replace(/^\?/, '') // Ensure all "plus spaces" are hex encoded spaces
+
+      output = pathname
+
+      if (search !== ''){
+        output += '?'
+      }
+
+      // Encode the individual uri components
+      output += $.map(search.split('&'), function(component){
+        return $.map(component.split('='), function(kv){
+          // HACK: Firefox 'helps' us out by encoding apostrophes as %27 in AJAX requests, However its encodeURIcomponent method
+          // does not. This difference causes a mismatch between the url we use to calculate the cache path in the browser
+          // and on the server. This hack undoes the damage. See https://bugzilla.mozilla.org/show_bug.cgi?id=407172
+          return encodeURIComponent(kv).replace(/'/g, '%27')
+        }).join('=')
+      }).join('&')
+
+      return output
     }
 };
 

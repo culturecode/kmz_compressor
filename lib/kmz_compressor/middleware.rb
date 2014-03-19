@@ -9,16 +9,10 @@ module KMZCompressor
 
       # If the User is asking for a KMZ file
       if request.path_info.end_with? '.kmz'
-        # HACK: Firefox 'helps' us out by encoding apostrophes as %27 in AJAX requests, However its encodeURI method
-        # does not. This difference causes a mismatch between the browser's cached KMZ path, and the server.
-        # This hack undoes the damage. See https://bugzilla.mozilla.org/show_bug.cgi?id=407172
-        recoded_uri = URI.encode(URI.decode(request.fullpath))
-
-        # HACK: Also encode brackets of nested params because the javascript version does, but the ruby version does not
-        recoded_uri = recoded_uri.gsub('[', '%5B').gsub(']','%5D')
+        uri = request.fullpath
 
         # Use a hash of the request path (before we gsub it) as the filename we will save on the HD
-        cache_path = "public/kmz/#{Digest::SHA2.hexdigest(recoded_uri)}.kmz"
+        cache_path = "public/kmz/#{Digest::SHA2.hexdigest(uri)}.kmz"
         file_exists = File.exists?(cache_path)
 
         if file_exists
