@@ -190,7 +190,7 @@ MapLayerManager = {
     // Matches the middleware process
     sanitizeURI: function(uri){
       var url = $('<a href="' + uri + '"/>')[0]
-      var pathname = decodeURI(url.pathname)
+      var pathname = decodeURI(url.pathname).trim().replace(/^\/\//, '/') // IE will return a path name with a leading double slash, so ensure it's only a single slash
       var search = decodeURIComponent(url.search.replace(/\+/g, '%20')).trim().replace(/^\?/, '') // Ensure all "plus spaces" are hex encoded spaces
 
       output = pathname
