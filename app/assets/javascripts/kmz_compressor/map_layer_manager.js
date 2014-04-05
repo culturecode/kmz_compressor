@@ -52,16 +52,16 @@ window.MapLayerManager = function(map){
     return '/kmz/' + hex_sha256(kmlPath) + '.kmz'
   }
 
-  function centerWhenLoaded(layerNames){
+  function centerWhenLoaded(layerNamez){
       var handler = function(){
           // If we have no layer names
-          if (!layerNames || layerNames.length == 0){
-              layerNames = layerNames()
+          if (!layerNamez || layerNamez.length == 0){
+              layerNamez = layerNames()
           }
 
-          if (layersLoaded(layerNames)){
+          if (layersLoaded(layerNamez)){
               $(window.document).unbind(layerLoadedEventName, handler)
-              centerOnLayers(layerNames);
+              centerOnLayers(layerNamez);
           }
       }
 
@@ -235,5 +235,5 @@ window.MapLayerManager = function(map){
 
   // PUBLIC INTERFACE
 
-  return {cacheAndLoadKMLLayer:cacheAndLoadKMLLayer, loadKMLLayer:loadKMLLayer, centerWhenLoaded:centerWhenLoaded, addLayer:addLayer, removeLayer:removeLayer}
+  return {cacheAndLoadKMLLayer:cacheAndLoadKMLLayer, loadKMLLayer:loadKMLLayer, centerWhenLoaded:centerWhenLoaded, addLayer:addLayer, removeLayer:removeLayer, map:map}
 }
