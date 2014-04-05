@@ -1,9 +1,9 @@
 window.MapLayerManager = function(map){
   var map                   = map;
-  var host                  =  location.protocol + "//" + location.host
+  var host                  = location.protocol + "//" + location.host
   var layers                = []
-  var loadingCount          = 0 // How many layers are being loade
-  var requestTimestamps     = { }
+  var loadingCount          = 0 // How many layers are being loaded
+  var requestTimestamps     = {}
   var layerLoadingEventName = 'map:layerLoading'
   var layerLoadedEventName  = 'map:layerLoaded'
 
@@ -235,5 +235,5 @@ window.MapLayerManager = function(map){
 
   // PUBLIC INTERFACE
 
-  return {cacheAndLoadKMLLayer:cacheAndLoadKMLLayer, loadKMLLayer:loadKMLLayer, centerWhenLoaded:centerWhenLoaded, addLayer:addLayer, removeLayer:removeLayer, map:map}
+  return {cacheAndLoadKMLLayer:cacheAndLoadKMLLayer, loadKMLLayer:loadKMLLayer, centerWhenLoaded:centerWhenLoaded, addLayer:addLayer, removeLayer:removeLayer, map:map, loadingCount:loadingCount}
 }
