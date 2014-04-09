@@ -70,7 +70,9 @@ window.MapLayerManager = function(map){
 
   // Returns the layer names
   function layerNames(){
-      return $(layers.slice(0)).map(function(){return name})
+      return $.map(layers, function(layer){
+        return layer.name
+      })
   }
 
   function addLayer(layerName, kml){
