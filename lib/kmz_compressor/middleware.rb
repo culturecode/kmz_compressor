@@ -9,7 +9,7 @@ module KMZCompressor
 
       # If the User is asking for a KMZ file
       if request.path_info.end_with? '.kmz'
-        uri = request.fullpath
+        uri = request.url
 
         # Use a hash of the request path (before we gsub it) as the filename we will save on the HD
         cache_path = "public/kmz/#{Digest::SHA2.hexdigest(uri)}.kmz"

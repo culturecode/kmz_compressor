@@ -1,6 +1,5 @@
 window.MapLayerManager = function(map){
   var map                   = map;
-  var host                  = location.protocol + "//" + location.host
   var layers                = []
   var loadingCount          = 0 // How many layers are being loaded
   var requestTimestamps     = {}
@@ -8,25 +7,25 @@ window.MapLayerManager = function(map){
   var layerLoadedEventName  = 'map:layerLoaded'
 
   // Prime the KMZ cache on the server before unleashing google's many tilemills
-  function cacheAndLoadKMLLayer(kmlPath, layerName, options) {
+  function cacheAndLoadKMLLayer(kmlURL, layerName, options) {
     var requestTimestamp = new Date;
-    kmlPath = sanitizeURI(kmlPath);
+    kmlURL = sanitizeURI(kmlURL);
 
-    $.ajax(host + kmlPath, {type:'head', complete:function(){
+    $.ajax(kmlURL, {type:'head', complete:function(){
         if (!requestTimestamps[layerName] || requestTimestamps[layerName] < requestTimestamp){
             requestTimestamps[layerName] = requestTimestamp;
-            loadKMLLayer(cachedKMZPath(kmlPath), layerName, options)
+            loadKMLLayer(cachedKMZURL(kmlURL), layerName, options)
         }
     }});
   }
 
-  function loadKMLLayer(kmlPath, layerName, options) {
+  function loadKMLLayer(kmlURL, layerName, options) {
       // Replace spaces with pluses so we don't have problems with some things turning them into %20s and some not
-      kmlPath = sanitizeURI(kmlPath);
+      kmlURL = sanitizeURI(kmlURL);
       options = options || {}
       options.map = map;
 
-      var kmlLayer = new google.maps.KmlLayer(host + kmlPath, options);
+      var kmlLayer = new google.maps.KmlLayer(kmlURL, options);
       var layer = addLayer(layerName, kmlLayer)
       loadingCount++
       $(window.document).trigger({type: layerLoadingEventName, layer:layer})
@@ -47,9 +46,10 @@ window.MapLayerManager = function(map){
       });
   }
 
-  // Generates the url of the cached KMZ for the given kmlPath
-  function cachedKMZPath(kmlPath){
-    return '/kmz/' + hex_sha256(kmlPath) + '.kmz'
+  // Generates the url of the cached KMZ for the given kmlURL
+  function cachedKMZURL(kmlURL){
+    var url = $('<a href="' + kmlURL + '"/>')[0]
+    return url.protocol + '//' + url.host + '/kmz/' + hex_sha256(kmlURL) + '.kmz'
   }
 
   function centerWhenLoaded(layerNamez){
@@ -225,7 +225,7 @@ window.MapLayerManager = function(map){
         }).join('=')
       }).join('&')
 
-      return output
+      return url.protocol + '//' + url.host + output
     }
 
 
