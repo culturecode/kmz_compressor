@@ -40,6 +40,10 @@ module KMZCompressor
           response = [response.data]
         end
 
+        # Allow Cross-Domain HEAD/GET requests to support subdomains
+        headers['Access-Control-Allow-Origin'] ||= '*'
+        headers['Access-Control-Request-Method'] ||= %w{HEAD GET}.join(",")
+
         # Return the response to the next middleware in the chain
         [status, headers, response]
       else
