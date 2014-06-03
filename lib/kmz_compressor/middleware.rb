@@ -34,10 +34,10 @@ module KMZCompressor
         if status == 200 && !file_exists
           # Zip the KML response and save it on the HD
           FileUtils.mkdir_p(File.dirname(cache_path))
-          response = Zippy.create(cache_path) do |zip|
-            zip['doc.kml'] = response.body
-          end
-          response = [response.data]
+          zipfile = Zip::File.open(cache_path, Zip::File::CREATE)
+          zipfile.get_output_stream("doc.kml") { |os| os.write response.body }
+          zipfile.commit
+          response = [zipfile]
         end
 
         # Allow Cross-Domain HEAD/GET requests to support subdomains

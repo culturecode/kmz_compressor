@@ -1,6 +1,6 @@
 require 'fileutils'
 require 'digest'
-require 'zippy'
+require 'zip'
 require 'kmz_compressor/middleware'
 
 module KMZCompressor
