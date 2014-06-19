@@ -5,6 +5,8 @@ window.MapLayerManager = function(map){
   var requestTimestamps     = {}
   var layerLoadingEventName = 'map:layerLoading'
   var layerLoadedEventName  = 'map:layerLoaded'
+  var layerRemovedEventName = 'map:layerRemoved'
+  var layerHiddenEventName  = 'map:layerHidden'
 
   // Prime the KMZ cache on the server before unleashing google's many tilemills
   function cacheAndLoadKMLLayer(kmlURL, layerName, options) {
@@ -28,7 +30,7 @@ window.MapLayerManager = function(map){
       var kmlLayer = new google.maps.KmlLayer(kmlURL, options);
       var layer = addLayer(layerName, kmlLayer)
       loadingCount++
-      $(window.document).trigger({type: layerLoadingEventName, layer:layer})
+      $(map.getDiv()).trigger({type: layerLoadingEventName, layer:layer})
 
       // Try and catch the defaultviewport_changed event so we can remove the old layer (sometimes this works, sometimes not)
       google.maps.event.addListener(kmlLayer, 'defaultviewport_changed', function(){
@@ -60,12 +62,12 @@ window.MapLayerManager = function(map){
           }
 
           if (layersLoaded(layerNamez)){
-              $(window.document).unbind(layerLoadedEventName, handler)
+              $(map.getDiv()).unbind(layerLoadedEventName, handler)
               centerOnLayers(layerNamez);
           }
       }
 
-      $(window.document).bind(layerLoadedEventName, handler)
+      $(map.getDiv()).bind(layerLoadedEventName, handler)
   }
 
   // Returns the layer names
@@ -94,6 +96,11 @@ window.MapLayerManager = function(map){
   // Hides the layer and returns true, returns false if the layer couldn't be hidden, returns nothing if the layer existed but the kml hadn't yet been loaded
   function hideLayer(layerName){
       var layer = getLayer(layerName);
+
+      if (layer){
+        $(map.getDiv()).trigger({type: layerHiddenEventName, layer:layer})
+      }
+
       if (layer && layer.kml){
           layer.oldMap = layer.kml.getMap();
           layer.kml.setMap(null)
@@ -153,6 +160,7 @@ window.MapLayerManager = function(map){
         if (layer.name == layerName){
           layer.kml.setMap(null)
           layers.splice(index, 1);
+          $(map.getDiv()).trigger({type: layerRemovedEventName, layer:layer})
           return;
         }
       });
@@ -182,7 +190,7 @@ window.MapLayerManager = function(map){
                 loadingCount--
                 layer.loaded = true
                 layer.error = kmlStatus == 'OK' ? null : kmlStatus // if there were any errors, record them
-                $(window.document).trigger({type: layerLoadedEventName, layer:layer})
+                $(map.getDiv()).trigger({type: layerLoadedEventName, layer:layer})
             }
 
             // A layer should be hidden, but the kml is showing, hide it (i.e. correct layers that were hidden before the kml was loaded)
@@ -237,5 +245,5 @@ window.MapLayerManager = function(map){
 
   // PUBLIC INTERFACE
 
-  return {cacheAndLoadKMLLayer:cacheAndLoadKMLLayer, loadKMLLayer:loadKMLLayer, centerWhenLoaded:centerWhenLoaded, addLayer:addLayer, removeLayer:removeLayer, map:map, loadingCount:loadingCount}
+  return {cacheAndLoadKMLLayer:cacheAndLoadKMLLayer, loadKMLLayer:loadKMLLayer, centerWhenLoaded:centerWhenLoaded, addLayer:addLayer, removeLayer:removeLayer, layerNames:layerNames, map:map, loadingCount:loadingCount}
 }
