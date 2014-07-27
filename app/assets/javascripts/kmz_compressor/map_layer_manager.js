@@ -7,6 +7,7 @@ window.MapLayerManager = function(map){
   var layerLoadedEventName  = 'map:layerLoaded'
   var layerRemovedEventName = 'map:layerRemoved'
   var layerHiddenEventName  = 'map:layerHidden'
+  var layerClickedEventName = 'map:layerClicked'
 
   // Prime the KMZ cache on the server before unleashing google's many tilemills
   function cacheAndLoadKMLLayer(kmlURL, layerName, options) {
@@ -37,14 +38,12 @@ window.MapLayerManager = function(map){
           sweep();
       });
 
-      // Add a listener to catch clicks and close all info windows on other layers
       google.maps.event.addListener(kmlLayer, 'click', function(){
-          everyLayer(function(layer){
-              if (layer.kml != kmlLayer){ // Don't close this layer's info window
-                  layer.kml.setOptions({suppressInfoWindows:true})
-                  layer.kml.setOptions({suppressInfoWindows:false})
-              }
-          })
+        // Add a listener to catch clicks and close all info windows on other layers
+        closeInfowindowsExcept(layerName)
+
+        // Create a bubbling event when a layer is clicked
+        $(map.getDiv()).trigger({type: layerClickedEventName, layer:layer})
       });
   }
 
@@ -166,76 +165,95 @@ window.MapLayerManager = function(map){
       });
   }
 
-    function removeLayers(){
-        everyLayer(function(layer){
-            removeLayer(layer.name);
-        })
+  function removeLayers(){
+      everyLayer(function(layer){
+          removeLayer(layer.name);
+      })
+  }
+  function everyLayer(fn){
+      // NOTE: We use an iterator instead of a for loop because modifications to layers that occur during iteration can mess us up
+      //       e.g. if we're responding to an event during the loop and the event adds a layer, we may end up re-iterating on a layer we've already processed
+      $.each(layers.slice(0), function(index, layer){
+          fn(layer, index);
+      })
+  }
+
+  // Keep layers synced with their state
+  function sweep(){
+      var foundLayers = [];
+      everyLayer(function(layer, index){
+          var kmlStatus = layer.kml ? layer.kml.getStatus() : null;
+
+          // If the layer just finished loading
+          if (!layer.loaded && kmlStatus) {
+              loadingCount--
+              layer.loaded = true
+              layer.error = kmlStatus == 'OK' ? null : kmlStatus // if there were any errors, record them
+              $(map.getDiv()).trigger({type: layerLoadedEventName, layer:layer})
+          }
+
+          // A layer should be hidden, but the kml is showing, hide it (i.e. correct layers that were hidden before the kml was loaded)
+          if (layer.hidden && layer.loaded && layer.kml.getMap()){
+              hideLayer(layer.name)
+          }
+
+          // Remove old layers
+          // Sweep through layers from the newest to oldest, if a layer name is seen more than once, delete all but the newest
+          // Don't delete an instance if we haven't yet seen a version of it with status 'OK'
+          if ($.inArray(layer.name, foundLayers) > -1){
+              layer.kml.setMap(null);
+              layers.splice(index, 1);
+          } else if (layer.loaded) {
+              foundLayers.push(layer.name)
+          }
+      })
+  }
+
+  // Replace spaces with pluses so we don't have problems with some things turning them into %20s and some not
+  // Matches the middleware process
+  function sanitizeURI(uri){
+    var url = $('<a href="' + uri + '"/>')[0]
+    var pathname = decodeURI(url.pathname).trim().replace(/^\/\//, '/') // IE will return a path name with a leading double slash, so ensure it's only a single slash
+    var search = decodeURIComponent(url.search.replace(/\+/g, '%20')).trim().replace(/^\?/, '') // Ensure all "plus spaces" are hex encoded spaces
+
+    output = pathname
+
+    if (search !== ''){
+      output += '?'
     }
-    function everyLayer(fn){
-        // NOTE: We use an iterator instead of a for loop because modifications to layers that occur during iteration can mess us up
-        //       e.g. if we're responding to an event during the loop and the event adds a layer, we may end up re-iterating on a layer we've already processed
-        $.each(layers.slice(0), function(index, layer){
-            fn(layer, index);
-        })
-    }
 
-    // Keep layers synced with their state
-    function sweep(){
-        var foundLayers = [];
-        everyLayer(function(layer, index){
-            var kmlStatus = layer.kml ? layer.kml.getStatus() : null;
+    // Encode the individual uri components
+    output += $.map(search.split('&'), function(component){
+      return $.map(component.split('='), function(kv){
+        // HACK: Firefox 'helps' us out by encoding apostrophes as %27 in AJAX requests, However its encodeURIcomponent method
+        // does not. This difference causes a mismatch between the url we use to calculate the cache path in the browser
+        // and on the server. This hack undoes the damage. See https://bugzilla.mozilla.org/show_bug.cgi?id=407172
+        return encodeURIComponent(kv).replace(/'/g, '%27')
+      }).join('=')
+    }).join('&')
 
-            // If the layer just finished loading
-            if (!layer.loaded && kmlStatus) {
-                loadingCount--
-                layer.loaded = true
-                layer.error = kmlStatus == 'OK' ? null : kmlStatus // if there were any errors, record them
-                $(map.getDiv()).trigger({type: layerLoadedEventName, layer:layer})
-            }
+    return url.protocol + '//' + url.host + output
+  }
 
-            // A layer should be hidden, but the kml is showing, hide it (i.e. correct layers that were hidden before the kml was loaded)
-            if (layer.hidden && layer.loaded && layer.kml.getMap()){
-                hideLayer(layer.name)
-            }
-
-            // Remove old layers
-            // Sweep through layers from the newest to oldest, if a layer name is seen more than once, delete all but the newest
-            // Don't delete an instance if we haven't yet seen a version of it with status 'OK'
-            if ($.inArray(layer.name, foundLayers) > -1){
-                layer.kml.setMap(null);
-                layers.splice(index, 1);
-            } else if (layer.loaded) {
-                foundLayers.push(layer.name)
-            }
-        })
-    }
-
-    // Replace spaces with pluses so we don't have problems with some things turning them into %20s and some not
-    // Matches the middleware process
-    function sanitizeURI(uri){
-      var url = $('<a href="' + uri + '"/>')[0]
-      var pathname = decodeURI(url.pathname).trim().replace(/^\/\//, '/') // IE will return a path name with a leading double slash, so ensure it's only a single slash
-      var search = decodeURIComponent(url.search.replace(/\+/g, '%20')).trim().replace(/^\?/, '') // Ensure all "plus spaces" are hex encoded spaces
-
-      output = pathname
-
-      if (search !== ''){
-        output += '?'
+  function closeInfowindowsExcept(layerName){
+    everyLayer(function(layer){
+      if (layer.name != layerName){
+        closeInfowindow(layer)
       }
+    })
+  }
 
-      // Encode the individual uri components
-      output += $.map(search.split('&'), function(component){
-        return $.map(component.split('='), function(kv){
-          // HACK: Firefox 'helps' us out by encoding apostrophes as %27 in AJAX requests, However its encodeURIcomponent method
-          // does not. This difference causes a mismatch between the url we use to calculate the cache path in the browser
-          // and on the server. This hack undoes the damage. See https://bugzilla.mozilla.org/show_bug.cgi?id=407172
-          return encodeURIComponent(kv).replace(/'/g, '%27')
-        }).join('=')
-      }).join('&')
+  function closeInfowindows(){
+    everyLayer(function(layer){
+      closeInfowindow(layer)
+    })
+  }
 
-      return url.protocol + '//' + url.host + output
-    }
-
+  function closeInfowindow(layer){
+    // Close info window by toggling the suppressInfoWindow setting (ensuring it retains its original value)
+    layer.kml.setOptions({suppressInfoWindows:!layer.kml.get('suppressInfoWindows')})
+    layer.kml.setOptions({suppressInfoWindows:!layer.kml.get('suppressInfoWindows')})
+  }
 
   // INIT
 
@@ -245,5 +263,5 @@ window.MapLayerManager = function(map){
 
   // PUBLIC INTERFACE
 
-  return {cacheAndLoadKMLLayer:cacheAndLoadKMLLayer, loadKMLLayer:loadKMLLayer, centerWhenLoaded:centerWhenLoaded, addLayer:addLayer, removeLayer:removeLayer, layerNames:layerNames, map:map, loadingCount:loadingCount}
+  return {cacheAndLoadKMLLayer:cacheAndLoadKMLLayer, loadKMLLayer:loadKMLLayer, centerWhenLoaded:centerWhenLoaded, addLayer:addLayer, removeLayer:removeLayer, layerNames:layerNames, map:map, loadingCount:loadingCount, closeInfowindows:closeInfowindows, closeInfowindowsExcept:closeInfowindowsExcept}
 }
