@@ -54,13 +54,15 @@ window.MapLayerManager = function(map){
   }
 
   function centerWhenLoaded(layerNamez){
+      layerNamez = makeArray(layerNamez)
+
       var handler = function(){
           // If we have no layer names
           if (!layerNamez || layerNamez.length == 0){
               layerNamez = layerNames()
           }
 
-          if (layersLoaded(layerNamez)){
+          if (areLayersLoaded(layerNamez)){
               $(map.getDiv()).unbind(layerLoadedEventName, handler)
               centerOnLayers(layerNamez);
           }
@@ -125,7 +127,8 @@ window.MapLayerManager = function(map){
       }
   }
 
-  function layersLoaded(layerNames){
+  function areLayersLoaded(layerNames){
+      layerNames = makeArray(layerNames)
       for (var i = 0; i < layerNames.length; i++){
           var layer = getLayer(layerNames[i]);
           if (!layer || !layer.loaded){
@@ -137,6 +140,8 @@ window.MapLayerManager = function(map){
 
   function centerOnLayers(layerNames){
       var bounds;
+      layerNames = makeArray(layerNames)
+      sweep() // Discard old layers before we generate the bounds
 
       for (var i = 0; i < layerNames.length; i++){
           var layer = getLayer(layerNames[i])
@@ -253,6 +258,14 @@ window.MapLayerManager = function(map){
     // Close info window by toggling the suppressInfoWindow setting (ensuring it retains its original value)
     layer.kml.setOptions({suppressInfoWindows:!layer.kml.get('suppressInfoWindows')})
     layer.kml.setOptions({suppressInfoWindows:!layer.kml.get('suppressInfoWindows')})
+  }
+
+  function makeArray(value){
+    if (!$.isArray(value)){
+      return [value]
+    } else {
+      return value
+    }
   }
 
   // INIT
