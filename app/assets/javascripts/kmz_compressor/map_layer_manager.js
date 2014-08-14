@@ -53,7 +53,7 @@ window.MapLayerManager = function(map){
     return url.protocol + '//' + url.host + '/kmz/' + hex_sha256(kmlURL) + '.kmz'
   }
 
-  function centerWhenLoaded(layerNamez){
+  function centerWhenLoaded(layerNamez, options){
       layerNamez = makeArray(layerNamez)
 
       var handler = function(){
@@ -64,7 +64,7 @@ window.MapLayerManager = function(map){
 
           if (areLayersLoaded(layerNamez)){
               $(map.getDiv()).unbind(layerLoadedEventName, handler)
-              centerOnLayers(layerNamez);
+              centerOnLayers(layerNamez, options);
           }
       }
 
@@ -138,7 +138,7 @@ window.MapLayerManager = function(map){
       return true
   }
 
-  function centerOnLayers(layerNames){
+  function centerOnLayers(layerNames, options){
       var bounds;
       layerNames = makeArray(layerNames)
       sweep() // Discard old layers before we generate the bounds
@@ -154,8 +154,14 @@ window.MapLayerManager = function(map){
               bounds.union(layer.kml.getDefaultViewport());
           }
       }
+      var checkZoom = options.maxZoom && map.getZoom() <= options.maxZoom
+
       if (bounds){
-          map.fitBounds(bounds);
+        map.fitBounds(bounds)
+      }
+
+      if (checkZoom && map.getZoom() > options.maxZoom){
+        map.setZoom(options.maxZoom)
       }
   }
 
