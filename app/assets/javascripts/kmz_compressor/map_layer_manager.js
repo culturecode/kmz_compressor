@@ -49,7 +49,7 @@ window.MapLayerManager = function(map){
 
   // Generates the url of the cached KMZ for the given kmlURL
   function cachedKMZURL(kmlURL){
-    var url = $('<a href="' + kmlURL + '"/>')[0]
+    var url = urlToObject(kmlURL)
     return url.protocol + '//' + url.host + '/kmz/' + hex_sha256(kmlURL) + '.kmz'
   }
 
@@ -223,7 +223,7 @@ window.MapLayerManager = function(map){
   // Replace spaces with pluses so we don't have problems with some things turning them into %20s and some not
   // Matches the middleware process
   function sanitizeURI(uri){
-    var url = $('<a href="' + uri + '"/>')[0]
+    var url = urlToObject(uri)
     var pathname = decodeURI(url.pathname).trim().replace(/^\/\//, '/') // IE will return a path name with a leading double slash, so ensure it's only a single slash
     var search = decodeURIComponent(url.search.replace(/\+/g, '%20')).trim().replace(/^\?/, '') // Ensure all "plus spaces" are hex encoded spaces
 
@@ -272,6 +272,26 @@ window.MapLayerManager = function(map){
     } else {
       return value
     }
+  }
+
+  // Because IE 8 and 9 don't seem to have all the location attributes, extract them manually
+  function urlToObject(url){
+    var href = $('<a href="' + url + '"/>')[0].href
+    var match = href.match(/^(.+?)\/\/(.+?)(?::(\d*))?(?:\/|$)(?:([^?]+))?(?:([^#]+))?(.*)/)
+    var value = {
+      href:     href,
+      protocol: match[1] || '',
+      hostname: match[2] || '',
+      port:     match[3] || '',
+      pathname: '/' + (match[4] || ''),
+      search:   match[5] || '',
+      hash:     match[6] || ''
+    }
+
+    value.host = value.hostname + ':' + value.port
+    value.origin = value.protocol + '//' + value.host
+
+    return value
   }
 
   // INIT
