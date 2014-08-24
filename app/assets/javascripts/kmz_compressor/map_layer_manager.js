@@ -288,7 +288,7 @@ window.MapLayerManager = function(map){
       hash:     match[6] || ''
     }
 
-    value.host = value.hostname + ':' + value.port
+    value.host = value.hostname + (value.port ? ':' + value.port : '')
     value.origin = value.protocol + '//' + value.host
 
     return value
