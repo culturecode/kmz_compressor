@@ -50,7 +50,8 @@ window.MapLayerManager = function(map){
   // Generates the url of the cached KMZ for the given kmlURL
   function cachedKMZURL(kmlURL){
     var url = urlToObject(kmlURL)
-    return url.protocol + '//' + url.host + '/kmz/' + hex_sha256(kmlURL) + '.kmz'
+    url.href = '/kmz/' + hex_sha256(kmlURL) + '.kmz'
+    return url.href
   }
 
   function centerWhenLoaded(layerNamez, options){
@@ -242,7 +243,9 @@ window.MapLayerManager = function(map){
         return encodeURIComponent(kv).replace(/'/g, '%27')
       }).join('=')
     }).join('&')
-    return url.protocol + '//' + url.host + output
+    url.href = output
+
+    return url.href
   }
 
   function closeInfowindowsExcept(layerName){
