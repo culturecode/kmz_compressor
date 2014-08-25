@@ -224,7 +224,7 @@ window.MapLayerManager = function(map){
   // Matches the middleware process
   function sanitizeURI(uri){
     var url = urlToObject(uri)
-    var pathname = decodeURI(url.pathname).trim().replace(/^\/\//, '/') // IE will return a path name with a leading double slash, so ensure it's only a single slash
+    var pathname = ('/' + decodeURI(url.pathname)).replace(/^\/+/, '/').trim()                  // Ensure there is a leading slash (IE doesn't provide one, Chrome does, FF does)
     var search = decodeURIComponent(url.search.replace(/\+/g, '%20')).trim().replace(/^\?/, '') // Ensure all "plus spaces" are hex encoded spaces
 
     output = pathname
@@ -242,7 +242,6 @@ window.MapLayerManager = function(map){
         return encodeURIComponent(kv).replace(/'/g, '%27')
       }).join('=')
     }).join('&')
-
     return url.protocol + '//' + url.host + output
   }
 
@@ -274,24 +273,8 @@ window.MapLayerManager = function(map){
     }
   }
 
-  // Because IE 8 and 9 don't seem to have all the location attributes, extract them manually
   function urlToObject(url){
-    var href = $('<a href="' + url + '"/>')[0].href
-    var match = href.match(/^(.+?)\/\/(.+?)(?::(\d*))?(?:\/|$)(?:([^?]+))?(?:([^#]+))?(.*)/)
-    var value = {
-      href:     href,
-      protocol: match[1] || '',
-      hostname: match[2] || '',
-      port:     match[3] || '',
-      pathname: '/' + (match[4] || ''),
-      search:   match[5] || '',
-      hash:     match[6] || ''
-    }
-
-    value.host = value.hostname + (value.port === '' ? '' : ':' + value.port)
-    value.origin = value.protocol + '//' + value.host
-
-    return value
+    return $('<a>').attr('href', url)[0]
   }
 
   // INIT
