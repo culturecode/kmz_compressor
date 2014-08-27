@@ -59,7 +59,7 @@ window.MapLayerManager = function(map){
 
       var handler = function(){
           // If we have no layer names
-          if (!layerNamez || layerNamez.length == 0){
+          if (layerNamez.length == 0){
               layerNamez = layerNames()
           }
 
@@ -141,6 +141,7 @@ window.MapLayerManager = function(map){
 
   function centerOnLayers(layerNames, options){
       var bounds;
+      options = options || {}
       layerNames = makeArray(layerNames)
       sweep() // Discard old layers before we generate the bounds
 
@@ -269,10 +270,12 @@ window.MapLayerManager = function(map){
   }
 
   function makeArray(value){
-    if (!$.isArray(value)){
-      return [value]
-    } else {
+    if (value === undefined){
+      return []
+    } else if ($.isArray(value)){
       return value
+    } else {
+      return [value]
     }
   }
 
