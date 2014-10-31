@@ -38,12 +38,12 @@ window.MapLayerManager = function(map){
           sweep();
       });
 
-      google.maps.event.addListener(kmlLayer, 'click', function(){
+      google.maps.event.addListener(kmlLayer, 'click', function(kmlEvent){
         // Add a listener to catch clicks and close all info windows on other layers
         closeInfowindowsExcept(layerName)
 
         // Create a bubbling event when a layer is clicked
-        $(map.getDiv()).trigger({type: layerClickedEventName, layer:layer})
+        $(map.getDiv()).trigger({type: layerClickedEventName, layer:layer, kmlEvent:kmlEvent})
       });
   }
 
