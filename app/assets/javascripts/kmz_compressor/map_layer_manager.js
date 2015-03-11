@@ -10,16 +10,24 @@ window.MapLayerManager = function(map){
   var layerClickedEventName = 'map:layerClicked'
 
   // Prime the KMZ cache on the server before unleashing google's many tilemills
-  function cacheAndLoadKMLLayer(kmlURL, layerName, options) {
+  function cacheAndLoadKMLLayer(kmlURL, layerName, options, retryDelay) {
     var requestTimestamp = new Date;
+    var retryDelay = retryDelay || 2000;
+
     kmlURL = sanitizeURI(kmlURL);
 
-    $.ajax(kmlURL, {type:'head', complete:function(){
+    $.ajax(kmlURL, {type:'head', statusCode:{
+      202: function(){ setTimeout(function(){ cacheAndLoadKMLLayer(kmlURL, layerName, options, retryDelay * 2) }, retryDelay) },
+      200: function(){
         if (!requestTimestamps[layerName] || requestTimestamps[layerName] < requestTimestamp){
             requestTimestamps[layerName] = requestTimestamp;
             loadKMLLayer(cachedKMZURL(kmlURL), layerName, options)
         }
-    }});
+      }
+    }}).error(function(){
+      console.error("Server returned an error when checking if " + kmlURL + " was cached")
+    })
+
   }
 
   function loadKMLLayer(kmlURL, layerName, options) {
