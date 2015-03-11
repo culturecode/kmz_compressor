@@ -16,7 +16,7 @@ window.MapLayerManager = function(map){
 
     kmlURL = sanitizeURI(kmlURL);
 
-    $.ajax(kmlURL, {type:'head', statusCode:{
+    return $.ajax(kmlURL, {type:'head', statusCode:{
       202: function(){ setTimeout(function(){ cacheAndLoadKMLLayer(kmlURL, layerName, options, retryDelay * 2) }, retryDelay) },
       200: function(){
         if (!requestTimestamps[layerName] || requestTimestamps[layerName] < requestTimestamp){
