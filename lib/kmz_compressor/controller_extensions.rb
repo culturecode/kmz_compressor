@@ -21,7 +21,7 @@ module KMZCompressor
             Rails.cache.write(cache_key, true, :expires_in => 1.hour) # Expire in case we somehow leave the cache key behind
             action.call
           ensure
-            # Rails.cache.delete(cache_key)
+            Rails.cache.delete(cache_key)
           end
         end
       end
