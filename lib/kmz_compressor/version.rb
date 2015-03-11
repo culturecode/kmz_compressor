@@ -1,3 +1,3 @@
 module KMZCompressor
-  VERSION = "2.0.20"
+  VERSION = "2.0.21"
 end
