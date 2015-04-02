@@ -15,6 +15,7 @@ window.MapLayerManager = function(map){
     var retryDelay = retryDelay || 2000;
 
     kmlURL = sanitizeURI(kmlURL);
+    options = jQuery.extend(true, {}, options); // Deep copy the options in case they are changed between now and when the map is ready to load
 
     return $.ajax(kmlURL, {type:'head', statusCode:{
       202: function(){ setTimeout(function(){ cacheAndLoadKMLLayer(kmlURL, layerName, options, retryDelay * 2) }, retryDelay) },
