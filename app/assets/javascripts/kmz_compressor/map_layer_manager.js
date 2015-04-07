@@ -137,6 +137,13 @@ window.MapLayerManager = function(map){
       }
   }
 
+  function setDrawOrder(layerName, zIndex){
+    var layer = getLayer(layerName)
+    if (layer){
+      layer.kml.setZIndex(zIndex)
+    }
+  }
+
   function areLayersLoaded(layerNames){
       layerNames = makeArray(layerNames)
       for (var i = 0; i < layerNames.length; i++){
@@ -300,5 +307,5 @@ window.MapLayerManager = function(map){
 
   // PUBLIC INTERFACE
 
-  return {cacheAndLoadKMLLayer:cacheAndLoadKMLLayer, loadKMLLayer:loadKMLLayer, centerWhenLoaded:centerWhenLoaded, addLayer:addLayer, removeLayer:removeLayer, layerNames:layerNames, map:map, loadingCount:loadingCount, closeInfowindows:closeInfowindows, closeInfowindowsExcept:closeInfowindowsExcept}
+  return {cacheAndLoadKMLLayer:cacheAndLoadKMLLayer, loadKMLLayer:loadKMLLayer, centerWhenLoaded:centerWhenLoaded, addLayer:addLayer, removeLayer:removeLayer, layerNames:layerNames, map:map, loadingCount:loadingCount, closeInfowindows:closeInfowindows, closeInfowindowsExcept:closeInfowindowsExcept, hideLayer:hideLayer, showLayer:showLayer, setDrawOrder:setDrawOrder}
 }
