@@ -34,7 +34,7 @@ window.MapLayerManager = function(map){
   function loadKMLLayer(kmlURL, layerName, options) {
       // Replace spaces with pluses so we don't have problems with some things turning them into %20s and some not
       kmlURL = sanitizeURI(kmlURL);
-      options = options || {}
+      options = jQuery.extend(true, {}, options); // Deep copy the options in case they are changed between now and when the map is ready to load
       options.map = map;
 
       var kmlLayer = new google.maps.KmlLayer(kmlURL, options);
