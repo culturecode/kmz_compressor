@@ -2,6 +2,7 @@ window.MapLayerManager = function(map){
   var map                   = map;
   var layers                = []
   var loadingCount          = 0 // How many layers are being loaded
+  var zIndexCount           = 0 // Each time a layer is created, increment the counter so we can use it to enforce a last request on top draw order
   var requestTimestamps     = {}
   var layerLoadingEventName = 'map:layerLoading'
   var layerLoadedEventName  = 'map:layerLoaded'
@@ -34,7 +35,7 @@ window.MapLayerManager = function(map){
   function loadKMLLayer(kmlURL, layerName, options) {
       // Replace spaces with pluses so we don't have problems with some things turning them into %20s and some not
       kmlURL = sanitizeURI(kmlURL);
-      options = jQuery.extend(true, {}, options); // Deep copy the options in case they are changed between now and when the map is ready to load
+      options = jQuery.extend(true, {}, options);
       options.map = map;
 
       var kmlLayer = new google.maps.KmlLayer(kmlURL, options);
@@ -90,6 +91,7 @@ window.MapLayerManager = function(map){
 
   function addLayer(layerName, kml){
     layers.unshift({name:layerName, kml:kml})
+    setDrawOrder(layerName, zIndexCount++)
     return layers[0]
   }
 
