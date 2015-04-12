@@ -307,5 +307,20 @@ window.MapLayerManager = function(map){
 
   // PUBLIC INTERFACE
 
-  return {cacheAndLoadKMLLayer:cacheAndLoadKMLLayer, loadKMLLayer:loadKMLLayer, centerWhenLoaded:centerWhenLoaded, addLayer:addLayer, removeLayer:removeLayer, layerNames:layerNames, map:map, loadingCount:loadingCount, closeInfowindows:closeInfowindows, closeInfowindowsExcept:closeInfowindowsExcept, hideLayer:hideLayer, showLayer:showLayer, setDrawOrder:setDrawOrder}
+  return {
+    cacheAndLoadKMLLayer   : cacheAndLoadKMLLayer,
+    loadKMLLayer           : loadKMLLayer,
+    centerWhenLoaded       : centerWhenLoaded,
+    addLayer               : addLayer,
+    removeLayer            : removeLayer,
+    layerNames             : layerNames,
+    map                    : map,
+    loadingCount           : loadingCount,
+    closeInfowindows       : closeInfowindows,
+    closeInfowindowsExcept : closeInfowindowsExcept,
+    hideLayer              : hideLayer,
+    showLayer              : showLayer,
+    setDrawOrder           : setDrawOrder,
+    everyLayer             : everyLayer
+  }
 }
