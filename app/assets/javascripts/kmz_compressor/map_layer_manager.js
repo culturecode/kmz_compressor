@@ -112,7 +112,7 @@ window.MapLayerManager = function(map){
         $(map.getDiv()).trigger({type: layerHiddenEventName, layer:layer})
       }
 
-      if (layer && layer.kml){
+      if (layer && layer.kml && !layer.oldMap){
           layer.oldMap = layer.kml.getMap();
           layer.kml.setMap(null)
           layer.hidden = true
