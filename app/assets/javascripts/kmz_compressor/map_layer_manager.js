@@ -16,7 +16,7 @@ window.MapLayerManager = function(map){
     var retryDelay = retryDelay || 2000;
 
     kmlURL = sanitizeURI(kmlURL);
-    options = jQuery.extend(true, {}, options); // Deep copy the options in case they are changed between now and when the map is ready to load
+    options = jQuery.extend(true, {zIndex:zIndexCount++}, options); // Deep copy the options in case they are changed between now and when the map is ready to load
 
     return $.ajax(kmlURL, {type:'head', statusCode:{
       202: function(){ setTimeout(function(){ cacheAndLoadKMLLayer(kmlURL, layerName, options, retryDelay * 2) }, retryDelay) },
@@ -35,8 +35,7 @@ window.MapLayerManager = function(map){
   function loadKMLLayer(kmlURL, layerName, options) {
       // Replace spaces with pluses so we don't have problems with some things turning them into %20s and some not
       kmlURL = sanitizeURI(kmlURL);
-      options = jQuery.extend(true, {}, options);
-      options.map = map;
+      options = jQuery.extend(true, {zIndex:zIndexCount++, map:map}, options);
 
       var kmlLayer = new google.maps.KmlLayer(kmlURL, options);
       var layer = addLayer(layerName, kmlLayer)
@@ -91,7 +90,6 @@ window.MapLayerManager = function(map){
 
   function addLayer(layerName, kml){
     layers.unshift({name:layerName, kml:kml})
-    setDrawOrder(layerName, zIndexCount++)
     return layers[0]
   }
 
