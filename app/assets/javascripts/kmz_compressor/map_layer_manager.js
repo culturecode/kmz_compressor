@@ -95,7 +95,7 @@ window.MapLayerManager = function(map){
 
   function getLayer(layerName){
     var desiredLayer
-    everyLayer(function(layer, index){
+    eachLayer(function(layer, index){
         if (layer.name == layerName){
             desiredLayer = layer
             return false;
@@ -144,6 +144,13 @@ window.MapLayerManager = function(map){
     }
   }
 
+  function setKMLOptions(layerName, options){
+    var layer = getLayer(layerName)
+    if (layer){
+      layer.kml.setOptions(options)
+    }
+  }
+
   function areLayersLoaded(layerNames){
       layerNames = makeArray(layerNames)
       for (var i = 0; i < layerNames.length; i++){
@@ -184,7 +191,7 @@ window.MapLayerManager = function(map){
   }
 
   function removeLayer(layerName){
-      everyLayer(function(layer, index){
+      eachLayer(function(layer, index){
         if (layer.name == layerName){
           layer.kml.setMap(null)
           layers.splice(index, 1);
@@ -195,11 +202,11 @@ window.MapLayerManager = function(map){
   }
 
   function removeLayers(){
-      everyLayer(function(layer){
+      eachLayer(function(layer){
           removeLayer(layer.name);
       })
   }
-  function everyLayer(fn){
+  function eachLayer(fn){
       // NOTE: We use an iterator instead of a for loop because modifications to layers that occur during iteration can mess us up
       //       e.g. if we're responding to an event during the loop and the event adds a layer, we may end up re-iterating on a layer we've already processed
       $.each(layers.slice(0), function(index, layer){
@@ -210,7 +217,7 @@ window.MapLayerManager = function(map){
   // Keep layers synced with their state
   function sweep(){
       var foundLayers = [];
-      everyLayer(function(layer, index){
+      eachLayer(function(layer, index){
           var kmlStatus = layer.kml ? layer.kml.getStatus() : null;
 
           // If the layer just finished loading
@@ -266,7 +273,7 @@ window.MapLayerManager = function(map){
   }
 
   function closeInfowindowsExcept(layerName){
-    everyLayer(function(layer){
+    eachLayer(function(layer){
       if (layer.name != layerName){
         closeInfowindow(layer)
       }
@@ -274,7 +281,7 @@ window.MapLayerManager = function(map){
   }
 
   function closeInfowindows(){
-    everyLayer(function(layer){
+    eachLayer(function(layer){
       closeInfowindow(layer)
     })
   }
@@ -321,6 +328,7 @@ window.MapLayerManager = function(map){
     hideLayer              : hideLayer,
     showLayer              : showLayer,
     setDrawOrder           : setDrawOrder,
-    everyLayer             : everyLayer
+    eachLayer              : eachLayer,
+    setKMLOptions          : setKMLOptions
   }
 }
