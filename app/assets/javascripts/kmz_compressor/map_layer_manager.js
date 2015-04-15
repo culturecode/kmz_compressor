@@ -318,6 +318,7 @@ window.MapLayerManager = function(map){
     cacheAndLoadKMLLayer   : cacheAndLoadKMLLayer,
     loadKMLLayer           : loadKMLLayer,
     centerWhenLoaded       : centerWhenLoaded,
+    centerOnLayers         : centerOnLayers,
     addLayer               : addLayer,
     removeLayer            : removeLayer,
     layerNames             : layerNames,
