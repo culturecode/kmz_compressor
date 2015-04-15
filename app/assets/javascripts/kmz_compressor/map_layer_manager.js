@@ -17,7 +17,7 @@ window.MapLayerManager = function(map){
     var retryDelay = retryDelay || 2000;
 
     kmlURL = sanitizeURI(kmlURL);
-    options = jQuery.extend(true, {zIndex:zIndexCount++}, options); // Deep copy the options in case they are changed between now and when the map is ready to load
+    options = jQuery.extend(true, {zIndex:getDrawOrder(layerName)}, options); // Deep copy the options in case they are changed between now and when the map is ready to load
 
     return $.ajax(kmlURL, {type:'head', statusCode:{
       202: function(){ setTimeout(function(){ cacheAndLoadKMLLayer(kmlURL, layerName, options, retryDelay * 2) }, retryDelay) },
@@ -36,7 +36,7 @@ window.MapLayerManager = function(map){
   function loadKMLLayer(kmlURL, layerName, options) {
       // Replace spaces with pluses so we don't have problems with some things turning them into %20s and some not
       kmlURL = sanitizeURI(kmlURL);
-      options = jQuery.extend(true, {zIndex:zIndexCount++, map:map}, options);
+      options = jQuery.extend(true, {zIndex:getDrawOrder(layerName), map:map}, options);
 
       var kmlLayer = new google.maps.KmlLayer(kmlURL, options);
       var layer = addLayer(layerName, kmlLayer)
@@ -142,6 +142,17 @@ window.MapLayerManager = function(map){
     var layer = getLayer(layerName)
     if (layer){
       layer.kml.setZIndex(zIndex)
+    }
+  }
+
+  // Returns the draw order for the layer if it exists,
+  // Else generates and returns a new draw order
+  function getDrawOrder(layerName){
+    var layer = getLayer(layerName)
+    if (layer){
+      return layer.kml.getZIndex()
+    } else {
+      return zIndexCount++
     }
   }
 
@@ -351,6 +362,7 @@ window.MapLayerManager = function(map){
   this.hideLayer              = hideLayer,
   this.showLayer              = showLayer,
   this.setDrawOrder           = setDrawOrder,
+  this.getDrawOrder           = getDrawOrder,
   this.eachLayer              = eachLayer,
   this.setKMLOptions          = setKMLOptions
 }
