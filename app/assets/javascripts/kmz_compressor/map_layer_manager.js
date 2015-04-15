@@ -1,4 +1,5 @@
 window.MapLayerManager = function(map){
+  var manager               = this
   var map                   = map;
   var layers                = []
   var loadingCount          = 0 // How many layers are being loaded
@@ -40,7 +41,7 @@ window.MapLayerManager = function(map){
       var kmlLayer = new google.maps.KmlLayer(kmlURL, options);
       var layer = addLayer(layerName, kmlLayer)
       loadingCount++
-      $(map.getDiv()).trigger({type: layerLoadingEventName, layer:layer})
+      triggerEvent(layerLoadingEventName, layer)
 
       // Try and catch the defaultviewport_changed event so we can remove the old layer (sometimes this works, sometimes not)
       google.maps.event.addListener(kmlLayer, 'defaultviewport_changed', function(){
@@ -52,7 +53,7 @@ window.MapLayerManager = function(map){
         closeInfowindowsExcept(layerName)
 
         // Create a bubbling event when a layer is clicked
-        $(map.getDiv()).trigger({type: layerClickedEventName, layer:layer, kmlEvent:kmlEvent})
+        triggerEvent(layerClickedEventName, layer, {kmlEvent:kmlEvent})
       });
   }
 
@@ -109,7 +110,7 @@ window.MapLayerManager = function(map){
       var layer = getLayer(layerName);
 
       if (layer){
-        $(map.getDiv()).trigger({type: layerHiddenEventName, layer:layer})
+        triggerEvent(layerHiddenEventName, layer)
       }
 
       if (layer && layer.kml && !layer.oldMap){
@@ -195,7 +196,7 @@ window.MapLayerManager = function(map){
         if (layer.name == layerName){
           layer.kml.setMap(null)
           layers.splice(index, 1);
-          $(map.getDiv()).trigger({type: layerRemovedEventName, layer:layer})
+          triggerEvent(layerRemovedEventName, layer)
           return;
         }
       });
@@ -225,7 +226,7 @@ window.MapLayerManager = function(map){
               loadingCount--
               layer.loaded = true
               layer.error = kmlStatus == 'OK' ? null : kmlStatus // if there were any errors, record them
-              $(map.getDiv()).trigger({type: layerLoadedEventName, layer:layer})
+              triggerEvent(layerLoadedEventName, layer)
           }
 
           // A layer should be hidden, but the kml is showing, hide it (i.e. correct layers that were hidden before the kml was loaded)
@@ -306,6 +307,16 @@ window.MapLayerManager = function(map){
     return $('<a>').attr('href', url)[0]
   }
 
+  // Triggers an event on the map and the MapLayerManager itself
+  // Triggers two events, one with the eventName, and one with the eventName:layer.name
+  // e.g. "map:layerLoaded" and "map:layerLoaded:PoliceCoverage"
+  function triggerEvent(eventName, layer, additionalData){
+    var data = $.extend({type:eventName, layer:layer}, additionalData)
+    var nameData = $.extend({type:eventName + ':' + layer.name, layer:layer}, additionalData)
+    $(map.getDiv()).trigger(data).trigger(nameData)
+    $(manager).trigger(data).trigger(nameData)
+  }
+
   // INIT
 
   // Because google events sometimes get missed, we ensure we're up to date every now and again
@@ -314,22 +325,20 @@ window.MapLayerManager = function(map){
 
   // PUBLIC INTERFACE
 
-  return {
-    cacheAndLoadKMLLayer   : cacheAndLoadKMLLayer,
-    loadKMLLayer           : loadKMLLayer,
-    centerWhenLoaded       : centerWhenLoaded,
-    centerOnLayers         : centerOnLayers,
-    addLayer               : addLayer,
-    removeLayer            : removeLayer,
-    layerNames             : layerNames,
-    map                    : map,
-    loadingCount           : loadingCount,
-    closeInfowindows       : closeInfowindows,
-    closeInfowindowsExcept : closeInfowindowsExcept,
-    hideLayer              : hideLayer,
-    showLayer              : showLayer,
-    setDrawOrder           : setDrawOrder,
-    eachLayer              : eachLayer,
-    setKMLOptions          : setKMLOptions
-  }
+  this.cacheAndLoadKMLLayer   = cacheAndLoadKMLLayer,
+  this.loadKMLLayer           = loadKMLLayer,
+  this.centerWhenLoaded       = centerWhenLoaded,
+  this.centerOnLayers         = centerOnLayers,
+  this.addLayer               = addLayer,
+  this.removeLayer            = removeLayer,
+  this.layerNames             = layerNames,
+  this.map                    = map,
+  this.loadingCount           = loadingCount,
+  this.closeInfowindows       = closeInfowindows,
+  this.closeInfowindowsExcept = closeInfowindowsExcept,
+  this.hideLayer              = hideLayer,
+  this.showLayer              = showLayer,
+  this.setDrawOrder           = setDrawOrder,
+  this.eachLayer              = eachLayer,
+  this.setKMLOptions          = setKMLOptions
 }
