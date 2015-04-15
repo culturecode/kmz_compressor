@@ -218,6 +218,8 @@ window.MapLayerManager = function(map){
   // Keep layers synced with their state
   function sweep(){
       var foundLayers = [];
+      var staleLayers = []
+
       eachLayer(function(layer, index){
           var kmlStatus = layer.kml ? layer.kml.getStatus() : null;
 
@@ -235,14 +237,24 @@ window.MapLayerManager = function(map){
           }
 
           // Remove old layers
-          // Sweep through layers from the newest to oldest, if a layer name is seen more than once, delete all but the newest
+          // Sweep through layers from the newest to oldest, if a layer name is seen more than once, mark all but the newest for deletion
           // Don't delete an instance if we haven't yet seen a version of it with status 'OK'
           if ($.inArray(layer.name, foundLayers) > -1){
-              layer.kml.setMap(null);
-              layers.splice(index, 1);
+              staleLayers.push(layer)
           } else if (layer.loaded) {
               foundLayers.push(layer.name)
           }
+      })
+
+      // Delete stale layers
+      $.each(staleLayers, function(_, staleLayer){
+        eachLayer(function(layer, index){
+          if (layer == staleLayer){
+            layer.kml.setMap(null);
+            layers.splice(index, 1)
+            return false
+          }
+        })
       })
   }
 
