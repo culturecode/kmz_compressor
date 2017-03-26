@@ -182,7 +182,7 @@ window.MapLayerManager = function(map){
 
       for (var i = 0; i < layerNames.length; i++){
           var layer = getLayer(layerNames[i])
-          if (layer.error){
+          if (!layer || layer.error){
               continue
           }
 
