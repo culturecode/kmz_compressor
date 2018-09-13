@@ -34,7 +34,6 @@ window.MapLayerManager = function(map){
   }
 
   function loadKMLLayer(kmlURL, layerName, options) {
-      // Replace spaces with pluses so we don't have problems with some things turning them into %20s and some not
       kmlURL = sanitizeURI(kmlURL);
       options = jQuery.extend(true, {zIndex:getDrawOrder(layerName), map:map}, options);
 
@@ -269,28 +268,34 @@ window.MapLayerManager = function(map){
       })
   }
 
-  // Replace spaces with pluses so we don't have problems with some things turning them into %20s and some not
-  // Matches the middleware process
-  function sanitizeURI(uri){
+  function sanitizeURI(uri) {
     var url = urlToObject(uri)
-    var pathname = ('/' + decodeURI(url.pathname)).replace(/^\/+/, '/').trim()                  // Ensure there is a leading slash (IE doesn't provide one, Chrome does, FF does)
-    var search = decodeURIComponent(url.search.replace(/\+/g, '%20')).trim().replace(/^\?/, '') // Ensure all "plus spaces" are hex encoded spaces
+    var pathname = ('/' + decodeURI(url.pathname)).replace(/^\/+/, '/').trim() // Ensure there is a leading slash (IE doesn't provide one, Chrome does, FF does)
+
+    var search = url.search.replace(/%26/g, '%2526').replace(/%3D/g, '%253D') // Double encode & and = or else we will be unable to tell them apart from unencoded ones
+    search = search.replace(/\+/g, '%20') // Ensure all "plus spaces" are hex encoded spaces
+    search = decodeURIComponent(search).trim().replace(/^\?/, '') // Remove any leading ?
 
     output = pathname
-
-    if (search !== ''){
-      output += '?'
-    }
+    if (search !== '') { output += '?' }
 
     // Encode the individual uri components
     output += $.map(search.split('&'), function(component){
       return $.map(component.split('='), function(kv){
+        // Unencode double encoded & and = from earlier
+        kv = kv.replace(/%26/g, '&').replace(/%3D/g, '=')
+
+        kv = encodeURIComponent(kv)
+
         // HACK: Firefox 'helps' us out by encoding apostrophes as %27 in AJAX requests, However its encodeURIcomponent method
         // does not. This difference causes a mismatch between the url we use to calculate the cache path in the browser
         // and on the server. This hack undoes the damage. See https://bugzilla.mozilla.org/show_bug.cgi?id=407172
-        return encodeURIComponent(kv).replace(/'/g, '%27')
+        kv = kv.replace(/'/g, '%27')
+
+        return kv
       }).join('=')
     }).join('&')
+
     url.href = output
 
     return url.href
