@@ -16,7 +16,8 @@ window.MapLayerManager = function(map){
     var requestTimestamp = new Date;
     var retryDelay = retryDelay || 2000;
 
-    kmlURL = sanitizeURI(kmlURL);
+    kmlURL = prepareUrl(kmlURL);
+
     options = jQuery.extend(true, {zIndex:getDrawOrder(layerName)}, options); // Deep copy the options in case they are changed between now and when the map is ready to load
 
     return $.ajax(kmlURL, {type:'head', statusCode:{
@@ -24,7 +25,7 @@ window.MapLayerManager = function(map){
       200: function(){
         if (!requestTimestamps[layerName] || requestTimestamps[layerName] < requestTimestamp){
             requestTimestamps[layerName] = requestTimestamp;
-            loadKMLLayer(cachedKMZURL(kmlURL), layerName, options)
+            loadKMLLayerWithoutExtraParams(cachedKMZURL(kmlURL), layerName, options)
         }
       }
     }}).error(function(){
@@ -34,7 +35,11 @@ window.MapLayerManager = function(map){
   }
 
   function loadKMLLayer(kmlURL, layerName, options) {
-      kmlURL = sanitizeURI(kmlURL);
+    kmlURL = prepareUrl(kmlURL);
+    loadKMLLayerWithoutExtraParams(kmlURL, layerName, options)
+  }
+
+  function loadKMLLayerWithoutExtraParams(kmlURL, layerName, options) {
       options = jQuery.extend(true, {zIndex:getDrawOrder(layerName), map:map}, options);
 
       var kmlLayer = new google.maps.KmlLayer(kmlURL, options);
@@ -268,6 +273,12 @@ window.MapLayerManager = function(map){
       })
   }
 
+  function prepareUrl(kmlURL) {
+    kmlURL = sanitizeURI(kmlURL);
+    kmlURL = addExtraParams(kmlURL, window.MapLayerManager.extraParams);
+    return kmlURL;
+  }
+
   function sanitizeURI(uri) {
     var url = urlToObject(uri)
     var pathname = ('/' + decodeURI(url.pathname)).replace(/^\/+/, '/').trim() // Ensure there is a leading slash (IE doesn't provide one, Chrome does, FF does)
@@ -297,6 +308,17 @@ window.MapLayerManager = function(map){
     }).join('&')
 
     url.href = output
+
+    return url.href
+  }
+
+  function addExtraParams(url, extraParams) {
+    url = urlToObject(url)
+    var paramString = $.param(extraParams || {})
+
+    if (paramString) {
+      url.search = url.search ? url.search + '&' + paramString : paramString
+    }
 
     return url.href
   }
@@ -344,6 +366,7 @@ window.MapLayerManager = function(map){
     $(map.getDiv()).trigger(data).trigger(nameData)
     $(manager).trigger(data).trigger(nameData)
   }
+
 
   // INIT
 
