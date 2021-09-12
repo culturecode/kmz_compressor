@@ -280,18 +280,18 @@ window.MapLayerManager = function(map){
   }
 
   function sanitizeURI(uri) {
-    var url = urlToObject(uri)
+    var url = new URL(urlToObject(uri))
     var pathname = ('/' + decodeURI(url.pathname)).replace(/^\/+/, '/').trim() // Ensure there is a leading slash (IE doesn't provide one, Chrome does, FF does)
 
     var search = url.search.replace(/%26/g, '%2526').replace(/%3D/g, '%253D') // Double encode & and = or else we will be unable to tell them apart from unencoded ones
     search = search.replace(/\+/g, '%20') // Ensure all "plus spaces" are hex encoded spaces
     search = decodeURIComponent(search).trim().replace(/^\?/, '') // Remove any leading ?
 
-    output = pathname
-    if (search !== '') { output += '?' }
+    var queryString = ''
+    if (search !== '') { queryString += '?' }
 
     // Encode the individual uri components
-    output += $.map(search.split('&'), function(component){
+    queryString += $.map(search.split('&'), function(component){
       return $.map(component.split('='), function(kv){
         // Unencode double encoded & and = from earlier
         kv = kv.replace(/%26/g, '&').replace(/%3D/g, '=')
@@ -307,7 +307,8 @@ window.MapLayerManager = function(map){
       }).join('=')
     }).join('&')
 
-    url.href = output
+    url.pathname = pathname
+    url.search = queryString
 
     return url.href
   }
