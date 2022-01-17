@@ -5,7 +5,7 @@ module KMZCompressor
 
     module ClassMethods
       def defer_until_kmz_cached(*actions)
-        around_filter :render_202_while_caching, :only => actions
+        around_action :render_202_while_caching, :only => actions
       end
     end
 
