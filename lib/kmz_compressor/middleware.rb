@@ -13,7 +13,7 @@ module KMZCompressor
 
         # Use a hash of the request path (before we gsub it) as the filename we will save on the HD
         cache_path = "public/kmz/#{Digest::SHA2.hexdigest(uri)}.kmz"
-        file_exists = File.exists?(cache_path)
+        file_exists = File.exist?(cache_path)
 
         if file_exists
           status = 200
