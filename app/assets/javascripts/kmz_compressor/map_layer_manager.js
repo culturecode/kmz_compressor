@@ -28,7 +28,7 @@ window.MapLayerManager = function(map){
             loadKMLLayerWithoutExtraParams(cachedKMZURL(kmlURL), layerName, options)
         }
       }
-    }}).error(function(){
+    }}).fail(function(){
       console.error("Server returned an error when checking if " + kmlURL + " was cached")
     })
 
