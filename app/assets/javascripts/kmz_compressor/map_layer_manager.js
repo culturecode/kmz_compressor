@@ -287,7 +287,7 @@ window.MapLayerManager = function(map){
     search = search.replace(/\+/g, '%20') // Ensure all "plus spaces" are hex encoded spaces
     search = decodeURIComponent(search).trim().replace(/^\?/, '') // Remove any leading ?
 
-    output = pathname
+    var output = pathname
     if (search !== '') { output += '?' }
 
     // Encode the individual uri components
