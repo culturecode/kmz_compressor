@@ -34,7 +34,7 @@ module KMZCompressor
         if status == 200 && !file_exists
           # Zip the KML response and save it on the HD
           FileUtils.mkdir_p(File.dirname(cache_path))
-          Zip::File.open(cache_path, Zip::File::CREATE) do |zipfile|
+          Zip::File.open(cache_path, create: true) do |zipfile|
             zipfile.get_output_stream("doc.kml") { |os| os.write response.body }
           end
           response = [File.open(cache_path).read]
