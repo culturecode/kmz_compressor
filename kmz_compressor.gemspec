@@ -16,5 +16,5 @@ Gem::Specification.new do |s|
   s.files = Dir["{app}/**/*"] + Dir["{lib}/**/*"] + ["MIT-LICENSE", "README.rdoc"]
 
   s.add_dependency "rails", ">= 4.2"
-  s.add_dependency "rubyzip", ">= 1.0.0"
+  s.add_dependency "rubyzip", ">= 3.0.0"
 end
